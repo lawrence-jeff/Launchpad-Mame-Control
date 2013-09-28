@@ -121,27 +121,27 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: usb_dev_mame.out
+all: usb_dev_mame_Ryhs.out
 
 # Tool invocations
-usb_dev_mame.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+usb_dev_mame_Ryhs.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: ARM Linker'
-	"C:/ti/ccsv5/tools/compiler/arm_5.0.4/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O0 -g --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_BLIZZARD_RB1 --define=UART_BUFFERED --diag_warning=225 --display_error_number --diag_wrap=off --gen_func_subsections=on --ual -z --stack_size=512 -m"app_TM4C123GH6PM_ccs.map" --heap_size=0 -i"C:/ti/ccsv5/tools/compiler/arm_5.0.4/lib" -i"C:/ti/ccsv5/tools/compiler/arm_5.0.4/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --rom_model -o "usb_dev_mame.out" $(ORDERED_OBJS)
+	"C:/ti/ccsv5/tools/compiler/arm_5.0.4/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 --abi=eabi -me -O0 -g --gcc --define=ccs="ccs" --define=PART_TM4C123GH6PM --define=TARGET_IS_BLIZZARD_RB1 --define=UART_BUFFERED --diag_warning=225 --display_error_number --diag_wrap=off --gen_func_subsections=on --ual -z --stack_size=512 -m"app_TM4C123GH6PM_ccs.map" --heap_size=0 -i"C:/ti/ccsv5/tools/compiler/arm_5.0.4/lib" -i"C:/ti/ccsv5/tools/compiler/arm_5.0.4/include" --reread_libs --warn_sections --display_error_number --diag_wrap=off --rom_model -o "usb_dev_mame_Ryhs.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	@$(MAKE) --no-print-directory post-build
 
 # Other Targets
 clean:
-	-$(RM) $(TMS470_EXECUTABLE_OUTPUTS__QUOTED) "usb_dev_mame.out"
+	-$(RM) $(TMS470_EXECUTABLE_OUTPUTS__QUOTED) "usb_dev_mame_Ryhs.out"
 	-$(RM) "Mame_pins.pp" "startup_ccs.pp" "usb_dev_mame.pp" "usb_mame_structs.pp" "utils\uartstdio.pp" "drivers\buttons.pp" 
 	-$(RM) "Mame_pins.obj" "startup_ccs.obj" "usb_dev_mame.obj" "usb_mame_structs.obj" "utils\uartstdio.obj" "drivers\buttons.obj" 
 	-@echo 'Finished clean'
 	-@echo ' '
 
 post-build:
-	-"C:/ti/ccsv5/utils/tiobj2bin/tiobj2bin" "usb_dev_mame.out" "usb_dev_mame.bin" "C:/ti/ccsv5/tools/compiler/arm_5.0.4/bin/armofd" "C:/ti/ccsv5/tools/compiler/arm_5.0.4/bin/armhex" "C:/ti/ccsv5/utils/tiobj2bin/mkhex4bin"
+	-"C:/ti/ccsv5/utils/tiobj2bin/tiobj2bin" "usb_dev_mame_Ryhs.out" "usb_dev_mame_Ryhs.bin" "C:/ti/ccsv5/tools/compiler/arm_5.0.4/bin/armofd" "C:/ti/ccsv5/tools/compiler/arm_5.0.4/bin/armhex" "C:/ti/ccsv5/utils/tiobj2bin/mkhex4bin"
 	-@echo ' '
 
 .PHONY: all clean dependents

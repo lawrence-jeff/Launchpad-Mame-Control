@@ -112,19 +112,18 @@ volatile uint32_t g_ui32SysTickCount;
 // Global button arrays and ticks hold button data from each loop for debouncing
 //
 //*****************************************************************************
-volatile signed char g_ui8Pad1[3];
-volatile signed char g_ui8Pad2[2];
-volatile signed char g_ui8Mouse[3];
+volatile signed char g_ui8Pad1LastSent[2];
+volatile signed char g_ui8Pad2LastSent[2];
+volatile signed char g_ui8MouseLastSent[3];
 volatile signed char g_ui8Pad1_1State[MAX_CHECKS];
 volatile signed char g_ui8Pad1_2State[MAX_CHECKS];
-volatile signed char g_ui8Pad1_3State[MAX_CHECKS];
 volatile signed char g_ui8Pad2_1State[MAX_CHECKS];
 volatile signed char g_ui8Pad2_2State[MAX_CHECKS];
 volatile signed char g_ui8Mouse_State[MAX_CHECKS];
 volatile signed char g_ui8IndexDebounce;
-volatile signed char g_ui8Pad1_Debounced[3];
-volatile signed char g_ui8Pad2_Debounced[2];
-volatile signed char g_ui8Mouse_Debounced[3];
+signed char g_ui8Pad1_Debounced[3];
+signed char g_ui8Pad2_Debounced[2];
+signed char g_ui8Mouse_Debounced[3];
 
 //*****************************************************************************
 //
@@ -280,19 +279,26 @@ void SendHIDReport(char ReportNum, signed char ReportData[])
 void
 StoreSwitches(void)
 {
-	g_ui8Pad1_1State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_PORTD_BASE, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
-	g_ui8Pad1_2State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|
-			GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
-	g_ui8Pad1_3State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
-	g_ui8Pad2_1State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5)>>2;
-	g_ui8Pad2_2State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|
-			GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
-	g_ui8Mouse_State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_0|GPIO_PIN_1);
+	//Read Player1 Controls
+	g_ui8Pad1_1State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_JOY1_BASE, GPIO_JOY1_UP|GPIO_JOY1_DOWN|GPIO_JOY1_LEFT|GPIO_JOY1_RIGHT);
+	g_ui8Pad1_2State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_P1_BASE, GPIO_P1_COIN|GPIO_P1_START|GPIO_P1_F|GPIO_P1_E|GPIO_P1_D|GPIO_P1_C|GPIO_P1_B|GPIO_P1_A);
+
+	//Read Player2 Controls
+	g_ui8Pad2_1State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_JOY2_BASE, GPIO_JOY2_UP|GPIO_JOY2_DOWN|GPIO_JOY2_LEFT|GPIO_JOY2_RIGHT)>>2;
+	g_ui8Pad2_2State[g_ui8IndexDebounce] =~GPIOPinRead(GPIO_P2_BASE, GPIO_P2_COIN|GPIO_P2_START|GPIO_P2_F|GPIO_P2_E|GPIO_P2_D|GPIO_P2_C|GPIO_P2_B|GPIO_P2_A);
+
+	//Read Mouse Buttons
+	g_ui8Mouse_State[g_ui8IndexDebounce] =0;//~GPIOPinRead(GPIO_P1_BASE, GPIO_P1_B|GPIO_P1_A);
+
 	++g_ui8IndexDebounce;
 	if(g_ui8IndexDebounce >= MAX_CHECKS)
 	{
 		g_ui8IndexDebounce = 0;
 	}
+
+	//Read Mouse/Trackball X/Y
+	g_ui8Mouse_Debounced[1] = (QEIPositionGet(QEI0_BASE)-127) * MOUSE_SCALAR;
+	g_ui8Mouse_Debounced[2] = (QEIPositionGet(QEI1_BASE)-127) * MOUSE_SCALAR;
 }
 
 //*****************************************************************************
@@ -304,6 +310,8 @@ void
 DebounceSwitches(void)
 {
 	unsigned char i,j;
+
+	//Pad1 DPad
 	j=0xff;
 	for (i=0; i<MAX_CHECKS; i++)
 	{
@@ -311,6 +319,7 @@ DebounceSwitches(void)
 	}
 	g_ui8Pad1_Debounced[0]=j;
 
+	//Pad1 Buttons
 	j=0xff;
 	for (i=0; i<MAX_CHECKS; i++)
 	{
@@ -318,13 +327,7 @@ DebounceSwitches(void)
 	}
 	g_ui8Pad1_Debounced[1]=j;
 
-	j=0xff;
-	for (i=0; i<MAX_CHECKS; i++)
-	{
-		j=j & g_ui8Pad1_3State[i];
-	}
-	g_ui8Pad1_Debounced[2]=j;
-
+	//Pad2 DPad
 	j=0xff;
 	for (i=0; i<MAX_CHECKS; i++)
 	{
@@ -332,6 +335,7 @@ DebounceSwitches(void)
 	}
 	g_ui8Pad2_Debounced[0]=j;
 
+	//Pad2 Buttons
 	j=0xff;
 	for (i=0; i<MAX_CHECKS; i++)
 	{
@@ -339,6 +343,7 @@ DebounceSwitches(void)
 	}
 	g_ui8Pad2_Debounced[1]=j;
 
+	//Mouse (Buttons only)
 	j=0xff;
 	for (i=0; i<MAX_CHECKS; i++)
 	{
@@ -355,12 +360,6 @@ DebounceSwitches(void)
 void
 CustomHidChangeHandler(void)
 {
-	// Local arrays to pass to USB
-	//
-	signed char Pad1[3];
-	signed char Pad2[2];
-	signed char Mouse[3];
-
 	// If the bus is suspended then resume it.
 	//
 	if(g_bSuspended)
@@ -372,71 +371,39 @@ CustomHidChangeHandler(void)
 	//
 	DebounceSwitches();
 
-	// Get mouse position data
-	//
-	g_ui8Mouse_Debounced[1] = QEIPositionGet(QEI0_BASE)-127 * MOUSE_SCALAR;
-	QEIPositionSet(QEI0_BASE, 127);
-	g_ui8Mouse_Debounced[2] = QEIPositionGet(QEI1_BASE)-127 * MOUSE_SCALAR;
-	QEIPositionSet(QEI1_BASE, 127);
-
-	bool Equals = true;
-	signed char i;
-	for (i=0; i<3; i++)		//Check for switch state change
+	//Player 1 Controls
+	if ((g_ui8Pad1_Debounced[0] != g_ui8Pad1LastSent[0]) | (g_ui8Pad1_Debounced[1] != g_ui8Pad1LastSent[1]))		//Send report if state has changed
 	{
-		if (g_ui8Pad1[i] != g_ui8Pad1_Debounced[i])
-		{
-			Equals = false;
-		}
+		SendHIDReport(1,g_ui8Pad1_Debounced);
+		//Update the last sent value
+		g_ui8Pad1LastSent[0] = g_ui8Pad1_Debounced[0];		//Update old states
+		g_ui8Pad1LastSent[1] = g_ui8Pad1_Debounced[1];
 	}
 
-	if (!Equals)			//Send report if state has changed
+	//Player 2 Controls
+	if ((g_ui8Pad2_Debounced[0] != g_ui8Pad2LastSent[0]) | (g_ui8Pad2_Debounced[1] != g_ui8Pad2LastSent[1]))
 	{
-		Pad1[0] = g_ui8Pad1_Debounced[0];
-		Pad1[1] = g_ui8Pad1_Debounced[1];
-		Pad1[2] = g_ui8Pad1_Debounced[2];
-		SendHIDReport(1,Pad1);
-	}
-	g_ui8Pad1[0] = g_ui8Pad1_Debounced[0];		//Update old states
-	g_ui8Pad1[1] = g_ui8Pad1_Debounced[1];
-	g_ui8Pad1[2] = g_ui8Pad1_Debounced[2];
-
-	Equals = true;
-	for (i=0; i<2; i++)
-	{
-		if (g_ui8Pad2[i] != g_ui8Pad2_Debounced[i])
-		{
-			Equals = false;
-		}
+		SendHIDReport(2,g_ui8Pad2_Debounced);
+		//Update the last sent value
+		g_ui8Pad2LastSent[0] = g_ui8Pad2_Debounced[0];
+		g_ui8Pad2LastSent[1] = g_ui8Pad2_Debounced[1];
 	}
 
-	if (!Equals)
+	//Mouse
+	if ((g_ui8Mouse_Debounced[0] != g_ui8MouseLastSent[0]) | (g_ui8Mouse_Debounced[1] != g_ui8MouseLastSent[1]) | (g_ui8Mouse_Debounced[2] != g_ui8MouseLastSent[2]))
 	{
-		Pad2[0] = g_ui8Pad2_Debounced[0];
-		Pad2[1] = g_ui8Pad2_Debounced[1];
-		SendHIDReport(2,Pad2);
-	}
-	g_ui8Pad2[0] = g_ui8Pad2_Debounced[0];
-	g_ui8Pad2[1] = g_ui8Pad2_Debounced[1];
+		SendHIDReport(3,g_ui8Mouse_Debounced);
 
-	Equals = true;
-	for (i=0; i<3; i++)
-	{
-		if (g_ui8Mouse[i] != g_ui8Mouse_Debounced[i])
-		{
-			Equals = false;
-		}
+		//Update the last sent values
+		g_ui8MouseLastSent[0] = g_ui8Mouse_Debounced[0];
+		g_ui8MouseLastSent[1] = g_ui8Mouse_Debounced[1];
+		g_ui8MouseLastSent[2] = g_ui8Mouse_Debounced[2];
+
+		//Reset Counter once sent
+		QEIPositionSet(QEI0_BASE, 127);
+		QEIPositionSet(QEI1_BASE, 127);
 	}
 
-	if (!Equals)
-	{
-		Mouse[0]=g_ui8Mouse_Debounced[0];
-		Mouse[1]=g_ui8Mouse_Debounced[1];
-		Mouse[2]=g_ui8Mouse_Debounced[2];
-		SendHIDReport(3,Mouse);
-	}
-	g_ui8Mouse[0] = g_ui8Mouse_Debounced[0];
-	g_ui8Mouse[1] = g_ui8Mouse_Debounced[1];
-	g_ui8Mouse[2] = g_ui8Mouse_Debounced[2];
 }
 
 //*****************************************************************************
@@ -449,43 +416,9 @@ void
 SysTickIntHandler(void)
 {
 	g_ui32SysTickCount++;
+	//Read Buttons and trackball values
 	StoreSwitches();
 
-    //
-    // If the left button has been pressed, and was previously not pressed,
-    // start the process of changing the behavior of the JTAG pins.
-    //
-    if(!ROM_GPIOPinRead(GPIO_PORTF_BASE,GPIO_PIN_4))
-    {
-            //
-            // Change PC0-3 into hardware (i.e. JTAG) pins.
-            //
-            HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_CR) = 0x01;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_AFSEL) |= 0x01;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_CR) = 0x02;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_AFSEL) |= 0x02;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_CR) = 0x04;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_AFSEL) |= 0x04;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_CR) = 0x08;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_AFSEL) |= 0x08;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_CR) = 0x00;
-            HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = 0;
-
-            //
-            // Change the LED to BLUE to indicate that the pins are in JTAG mode.
-            //
-            ROM_GPIOPinWrite(GPIO_PORTF_BASE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 4);
-
-            //
-            // Mark device in programming mode
-            //
-            g_bProgramMode = true;
-    }
 }
 
 //*****************************************************************************
@@ -508,8 +441,7 @@ main(void)
     //
     // Set the clocking to run from the PLL at 50MHz.
     //
-    ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
-                       SYSCTL_XTAL_16MHZ);
+    ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 
 	// Initialize the inputs
     PortFunctionInit();
@@ -531,20 +463,23 @@ main(void)
     g_bProgramMode = false;
     g_ui8Pad1_Debounced[0] = 0x00;
     g_ui8Pad1_Debounced[1] = 0x00;
-    g_ui8Pad1_Debounced[2] = 0x00;
+
     g_ui8Pad2_Debounced[0] = 0x00;
     g_ui8Pad2_Debounced[1] = 0x00;
+
     g_ui8Mouse_Debounced[0] = 0x00;
     g_ui8Mouse_Debounced[1] = 0x00;
     g_ui8Mouse_Debounced[2] = 0x00;
-    g_ui8Pad1[0] = 0x00;
-    g_ui8Pad1[1] = 0x00;
-    g_ui8Pad1[2] = 0x00;
-    g_ui8Pad2[0] = 0x00;
-    g_ui8Pad2[1] = 0x00;
-    g_ui8Mouse[0] = 0x00;
-    g_ui8Mouse[1] = 0x00;
-    g_ui8Mouse[2] = 0x00;
+
+    g_ui8Pad1LastSent[0] = 0x00;
+    g_ui8Pad1LastSent[1] = 0x00;
+
+    g_ui8Pad2LastSent[0] = 0x00;
+    g_ui8Pad2LastSent[1] = 0x00;
+
+    g_ui8MouseLastSent[0] = 0x00;
+    g_ui8MouseLastSent[1] = 0x00;
+    g_ui8MouseLastSent[2] = 0x00;
 
     //
     // Initialize the USB stack for device mode. (must use force on the Tiva launchpad since it doesn't have detection pins connected)
@@ -635,7 +570,7 @@ main(void)
 				}
 			}
 
-		    if(g_ui32SysTickCount>=8  && !g_bProgramMode)
+		    if(g_ui32SysTickCount>=MAX_CHECKS  && !g_bProgramMode)
 		    {
 		    	//Reset systick counter
 		    	g_ui32SysTickCount = 0;

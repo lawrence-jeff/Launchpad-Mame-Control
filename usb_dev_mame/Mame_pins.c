@@ -50,283 +50,50 @@
 void
 PortFunctionInit(void)
 {
-    //
-    // Enable Peripheral Clocks 
-    //
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_QEI0);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_QEI1);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+	 //
+	// Enable Peripheral Clocks
+	//
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_QEI0);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_QEI1);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+	MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 
-    //
-    // Enable port PA1 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_1);
-    MAP_GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 
-    //
-    // Enable port PA2 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_2);
-    MAP_GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_2, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+	//Enabe P1 Joystick
+	MAP_GPIOPinTypeGPIOInput(GPIO_JOY1_BASE, GPIO_JOY1_UP | GPIO_JOY1_DOWN | GPIO_JOY1_RIGHT | GPIO_JOY1_LEFT );
+	MAP_GPIOPadConfigSet(GPIO_JOY1_BASE, GPIO_JOY1_UP | GPIO_JOY1_DOWN | GPIO_JOY1_RIGHT | GPIO_JOY1_LEFT, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 
-    //
-    // Enable port PA4 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_4);
-    MAP_GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+	//Enable P1 Buttons
+	MAP_GPIOPinTypeGPIOInput(GPIO_P1_BASE, GPIO_P1_A | GPIO_P1_B | GPIO_P1_C | GPIO_P1_D | GPIO_P1_E | GPIO_P1_F | GPIO_P1_START | GPIO_P1_COIN);
+	MAP_GPIOPadConfigSet(GPIO_P1_BASE, GPIO_P1_A | GPIO_P1_B | GPIO_P1_C | GPIO_P1_D | GPIO_P1_E | GPIO_P1_F | GPIO_P1_START | GPIO_P1_COIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 
-    //
-    // Enable port PA7 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_7);
-    MAP_GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_7, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+	// Enable Output Status Light
+	MAP_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
 
-    //
-    // Enable port PA6 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_6);
-    MAP_GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_6, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+	// Trackball X Axis
+	// First open the lock and select the bits we want to modify in the GPIO commit register.
+	// Then modify the configuration of the pins that we unlocked.
+	HWREG(GPIO_PORTD_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
+	HWREG(GPIO_PORTD_BASE + GPIO_O_CR) = 0x80;
+	MAP_GPIOPinConfigure(GPIO_TRK_X_A_QEI);
+	MAP_GPIOPinTypeQEI(GPIO_TRK_X_BASE, GPIO_TRK_X_A);
+	MAP_GPIOPinConfigure(GPIO_TRK_X_B_QEI);
+	MAP_GPIOPinTypeQEI(GPIO_TRK_X_BASE, GPIO_TRK_X_B);
 
-    //
-    // Enable port PA5 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_5);
-    MAP_GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_5, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+	// Trackball Y Axis
+	MAP_GPIOPinConfigure(GPIO_TRK_Y_A_QEI);
+	MAP_GPIOPinTypeQEI(GPIO_TRK_Y_BASE,  GPIO_TRK_Y_A);
+	MAP_GPIOPinConfigure(GPIO_PC6_PHB1);
+	MAP_GPIOPinTypeQEI(GPIO_TRK_Y_BASE,  GPIO_TRK_Y_B);
 
-    //
-    // Enable port PA0 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_0);
-    MAP_GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+	//
+	// Enable port PD4/5 for USB0 USB0DP
+	//
+	MAP_GPIOPinTypeUSBAnalog(GPIO_PORTD_BASE, GPIO_PIN_5);
+	MAP_GPIOPinTypeUSBAnalog(GPIO_PORTD_BASE, GPIO_PIN_4);
 
-    //
-    // Enable port PA3 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_3);
-    MAP_GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PB5 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_5);
-    MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_5, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PB2 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_2);
-    MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_2, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PB7 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_7);
-    MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_7, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PB4 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_4);
-    MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PB3 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_3);
-    MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PB1 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_1);
-    MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PB6 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_6);
-    MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_6, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PB0 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTB_BASE, GPIO_PIN_0);
-    MAP_GPIOPadConfigSet(GPIO_PORTB_BASE, GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PC1 for GPIOInput
-    //
-
-    //
-    //First open the lock and select the bits we want to modify in the GPIO commit register.
-    //
-    HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-    HWREG(GPIO_PORTC_BASE + GPIO_O_CR) = 0x2;
-
-    //
-    //Now modify the configuration of the pins that we unlocked.
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_1);
-    MAP_GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PC3 for GPIOInput
-    //
-
-    //
-    //First open the lock and select the bits we want to modify in the GPIO commit register.
-    //
-    HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-    HWREG(GPIO_PORTC_BASE + GPIO_O_CR) = 0x8;
-
-    //
-    //Now modify the configuration of the pins that we unlocked.
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_3);
-    MAP_GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PC0 for GPIOInput
-    //
-
-    //
-    //First open the lock and select the bits we want to modify in the GPIO commit register.
-    //
-    HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-    HWREG(GPIO_PORTC_BASE + GPIO_O_CR) = 0x1;
-
-    //
-    //Now modify the configuration of the pins that we unlocked.
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_0);
-    MAP_GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PC2 for GPIOInput
-    //
-
-    //
-    //First open the lock and select the bits we want to modify in the GPIO commit register.
-    //
-    HWREG(GPIO_PORTC_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-    HWREG(GPIO_PORTC_BASE + GPIO_O_CR) = 0x4;
-
-    //
-    //Now modify the configuration of the pins that we unlocked.
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_2);
-    MAP_GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_2, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PD3 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_3);
-    MAP_GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PD1 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_1);
-    MAP_GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PD2 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_2);
-    MAP_GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_2, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PD0 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTD_BASE, GPIO_PIN_0);
-    MAP_GPIOPadConfigSet(GPIO_PORTD_BASE, GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PE1 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_1);
-    MAP_GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PE2 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_2);
-    MAP_GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_2, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PE5 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_5);
-    MAP_GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_5, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PE3 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_3);
-    MAP_GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PE0 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_0);
-    MAP_GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    //
-    // Enable port PE4 for GPIOInput
-    //
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_4);
-    MAP_GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    // Enable Left Button
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTF_BASE,GPIO_PIN_4);
-    MAP_GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-    // Enable Output Status Light
-    MAP_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE,GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
-
-    //
-    // Enable port PD6 for QEI0 PHA0
-    //
-    MAP_GPIOPinConfigure(GPIO_PD6_PHA0);
-    MAP_GPIOPinTypeQEI(GPIO_PORTD_BASE, GPIO_PIN_6);
-
-    //
-    // Enable port PD7 for QEI0 PHB0
-    // First open the lock and select the bits we want to modify in the GPIO commit register.
-    //
-    HWREG(GPIO_PORTD_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-    HWREG(GPIO_PORTD_BASE + GPIO_O_CR) = 0x80;
-
-    //
-    // Now modify the configuration of the pins that we unlocked.
-    //
-    MAP_GPIOPinConfigure(GPIO_PD7_PHB0);
-    MAP_GPIOPinTypeQEI(GPIO_PORTD_BASE, GPIO_PIN_7);
-
-    //
-    // Enable port PC5 for QEI1 PHA1
-    //
-    MAP_GPIOPinConfigure(GPIO_PC5_PHA1);
-    MAP_GPIOPinTypeQEI(GPIO_PORTC_BASE, GPIO_PIN_5);
-
-    //
-    // Enable port PC6 for QEI1 PHB1
-    //
-    MAP_GPIOPinConfigure(GPIO_PC6_PHB1);
-    MAP_GPIOPinTypeQEI(GPIO_PORTC_BASE, GPIO_PIN_6);
-
-    //
-    // Enable port PD5 for USB0 USB0DP
-    //
-    MAP_GPIOPinTypeUSBAnalog(GPIO_PORTD_BASE, GPIO_PIN_5);
-
-    //
-    // Enable port PD4 for USB0 USB0DM
-    //
-    MAP_GPIOPinTypeUSBAnalog(GPIO_PORTD_BASE, GPIO_PIN_4);
 }
